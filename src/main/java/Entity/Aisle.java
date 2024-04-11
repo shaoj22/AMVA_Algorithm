@@ -2,6 +2,8 @@ package Entity;
 
 import lombok.Data;
 
+import java.util.HashMap;
+
 @Data
 public class Aisle {
 
@@ -11,8 +13,8 @@ public class Aisle {
     private Point point;
 
     /**
-     * 左："+X"；右："-X"；上："+Y"；下："-Y"；
+     * 左："0/1"；右："0/1"；上："0/1"；下："0/1"；
      */
-    private String aisleDirection;
+    private HashMap<String, Integer> directions;
 
 }

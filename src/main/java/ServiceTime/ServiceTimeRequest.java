@@ -31,4 +31,9 @@ public class ServiceTimeRequest {
      */
     private double storingTime;
 
+    /**
+     * 货架的宽度
+     */
+    private double u;
+
 }

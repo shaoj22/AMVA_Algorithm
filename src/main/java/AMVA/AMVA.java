@@ -28,6 +28,7 @@ public class AMVA {
          * 初始化
          */
 
+        // TODO：初始化
         for (int s = 1; s <= S; s++) {
             ps[s][0][0] = 1;
             Qs[s][0] = 0;
@@ -39,6 +40,7 @@ public class AMVA {
          * 预处理
          */
 
+        // TODO：预处理
         for (int s = 1; s <= S; s++) {
             ESrem[s] = ((Cs[s]-1)/(Cs[s]+1))*(ESs[s]/Cs[s]) + (2/(Cs[s]+1))*(1/Cs[s])*(ESs2[s]/(2*ESs[s]));
         }
@@ -49,22 +51,26 @@ public class AMVA {
 
         for (int r = 1; r <= R; r++) {
 
-            // 如果是cqn2的话需要初始化一阶矩和二阶矩
+            // 如果是cqn2的话需要初始化不同机器人数量r情况下的一阶矩和二阶矩
             if (amvaRequest.getCqnType().equals("cqn2")) {
                 if (r == 1) {
+                    // TODO：r=1情况下的一阶矩和二阶矩
                     ESs[S] = amvaRequest.getCqn1Throughput()/((1- amvaRequest.getLambda()) * amvaRequest.getLambda());
                 }
                 else{
-                    ESs[S] = 1/ amvaRequest.getLambda();
+                    // TODO：r>1情况下的一阶矩和二阶矩
+                    ESs[S] = 1 / amvaRequest.getLambda();
                 }
             }
 
             // (a) 服务站s服务完当前所有顾客的时间期望
+            // TODO：(a) 服务站s服务完当前所有顾客的时间期望
             for (int s = 1; s <= S; s++) {
                 ETs[s][r] = Qs[s][r-1]*ESrem[s] + LsEx[s][r-1]*(ESs[s]/Cs[s]) + ESs[s];
             }
 
             // (b) 系统吞吐量
+            // TODO：(b) 系统吞吐量
             double sumVsETs = 0;
             for (int s = 1; s <= S; s++) {
                 sumVsETs += Vs[s]*ETs[s][r];
@@ -72,6 +78,7 @@ public class AMVA {
             Tr[r] = r/sumVsETs;
 
             // (c) 条件概率
+            // TODO：(c) 条件概率
             for (int s = 1; s <= S; s++) {
                 int minCsr = Math.min(Cs[s]-1, r);
                 for (int b = 1; b <= minCsr; b++) {
@@ -80,6 +87,7 @@ public class AMVA {
             }
 
             // (d) 服务站全忙概率
+            // TODO：(d) 服务站全忙概率
             for (int s = 1; s <= S; s++) {
                 if (r < Cs[s]){
                     Qs[s][r] = 0;
@@ -90,6 +98,7 @@ public class AMVA {
             }
 
             // (e) 服务站没有顾客的概率
+            // TODO：(e) 服务站没有顾客的概率
             for (int s = 1; s <= S; s++) {
                 int minCsr = Math.min(Cs[s]-1, r);
                 double sumPsQs = 0;
@@ -100,6 +109,7 @@ public class AMVA {
             }
 
             // (f) 服务站处的Ex队长
+            // TODO：(f) 服务站处的Ex队长
             for (int s = 1; s <= S; s++) {
                 if (r < Cs[s]){
                     LsEx[s][r] = 0;
@@ -110,6 +120,7 @@ public class AMVA {
             }
 
             // (g) 服务站处的In队长
+            // TODO：(g) 服务站处的In队长
             for (int s = 1; s <= S; s++) {
                 LsIn[s][r] = Tr[r]*Vs[s]*ETs[s][r];
             }

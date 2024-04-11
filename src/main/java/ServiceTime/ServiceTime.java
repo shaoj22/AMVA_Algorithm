@@ -5,7 +5,6 @@ import Entity.Stock;
 import Entity.WorkStation;
 
 import java.util.List;
-import java.util.Random;
 
 public class ServiceTime {
     public static ServiceTimeResponse runner(ServiceTimeRequest serviceTimeRequest) {
@@ -36,6 +35,7 @@ public class ServiceTime {
         double[][] tws = new double[workStationNum][stockNum];
         double[][] tss = new double[stockNum][stockNum];
 
+        // note. 0 index 用于占位
         double[] ESs = new double[stationNum+1];
         double[] ESs2 = new double[stationNum+1];
 
@@ -137,18 +137,17 @@ public class ServiceTime {
         double sumTsw2 = 0;
         for (int s = 0; s < stockNum; s++) {
             for (int w = 0; w < workStationNum; w++) {
-                sumTsw += tws[s][w];
-                sumTsw2 += tws[s][w]*tws[s][w];
+                sumTsw += tws[w][s];
+                sumTsw2 += tws[w][s]*tws[w][s];
             }
         }
         ESs[3] = sumTsw/(workStationNum*stockNum);
         ESs2[3] = sumTsw2/(workStationNum*stockNum);
 
-
-        
         /**
          * 输出
          */
+
         ServiceTimeResponse serviceTimeResponse = new ServiceTimeResponse();
         serviceTimeResponse.setESs(ESs);
         serviceTimeResponse.setESs2(ESs2);
@@ -157,20 +156,169 @@ public class ServiceTime {
     }
 
     private static double calStock2WorkStationDistance(Stock stock, WorkStation workStation){
+        double u = 1.0;
+        double distance = 0.0;
+        // ws的坐标
+        int Xws = workStation.getPoint().getX();
+        int Yws = workStation.getPoint().getY();
+        // 计算detour
+        double detour;
+        if (workStation.getDetour().equals("0")) {
+            detour = 0.0;
+        }
+        else {
+            detour = 2 * u;
+        }
 
-        Random random = new Random();
-        double distance = 20 + (100-20)*random.nextDouble();
+        // case1: 如果workStation在west(east)且stock的entrance在west(east)
+        if ((workStation.getDirection().equals("west") && stock.getEntranceAisleDirection().equals("west"))
+                || (workStation.getDirection().equals("east") && stock.getEntranceAisleDirection().equals("east"))) {
+            // TODO：确定case1距离的计算方式
+            // le的坐标
+            int Xle = 0;
+            int Yle = 0;
+            if (stock.getPoint().getY()%3 == 1) {
+                // down stock
+                Xle = stock.getPoint().getX();
+                Yle = stock.getPoint().getY() - 1;
+            }
+            if (stock.getPoint().getY()%3 == 2) {
+                // up stock
+                Xle = stock.getPoint().getX();
+                Yle = stock.getPoint().getY() + 1;
+            }
+            // 计算距离
+            distance = u + Math.abs(Xle-Xws) + Math.abs(Yle-Yws) + detour;
+        }
+
+        // case2: 如果workStation在west(east)且stock的entrance在east(west)
+        if ((workStation.getDirection().equals("west") && stock.getEntranceAisleDirection().equals("east"))
+                || (workStation.getDirection().equals("east") && stock.getEntranceAisleDirection().equals("west"))) {
+            // TODO：确定case2距离的计算方式
+            // le的坐标
+            int Xle = 0;
+            int Yle = 0;
+            if (stock.getPoint().getY()%3 == 1) {
+                // down stock
+                Xle = stock.getPoint().getX();
+                Yle = stock.getPoint().getY() - 1;
+            }
+            if (stock.getPoint().getY()%3 == 2) {
+                // up stock
+                Xle = stock.getPoint().getX();
+                Yle = stock.getPoint().getY() + 1;
+            }
+            // si的坐标以及le至si的距离
+            int Xsi = 0;
+            int Ysi = 0;
+            double distanceLeSi = 0.0;
+            // 横向通道的方向
+            if (stock.getEntranceAisleDirection().equals("east")) {
+                Xsi = stock.getPoint().getX() - stock.getPoint().getX()%6;
+            }
+            else {
+                Xsi = stock.getPoint().getX() + stock.getPoint().getX()%6;
+            }
+            // 纵向通道的方向
+            if (stock.getFirstCrossAisleEncountered().equals("north")) {
+                Ysi = stock.getPoint().getY() + 3;
+            }
+            else {
+                Ysi = stock.getPoint().getY() - 3;
+            }
+            distanceLeSi = Math.abs(Xsi-Xle) + 2*u + 2*u + 5*u;
+            // 计算距离
+            distance = u + distanceLeSi + Math.abs(Xsi-Xws) + Math.abs(Ysi-Yws) + detour;
+        }
+
+        // case3: 如果workStation在north(south)且stock的encountered在north(south)
+        if ((workStation.getDirection().equals("north") && stock.getFirstCrossAisleEncountered().equals("north"))
+                || (workStation.getDirection().equals("south") && stock.getFirstCrossAisleEncountered().equals("south"))) {
+            // TODO：确定case3距离的计算方式
+            // le的坐标
+            int Xle = 0;
+            int Yle = 0;
+            if (stock.getPoint().getY()%3 == 1) {
+                // down stock
+                Xle = stock.getPoint().getX();
+                Yle = stock.getPoint().getY() - 1;
+            }
+            if (stock.getPoint().getY()%3 == 2) {
+                // up stock
+                Xle = stock.getPoint().getX();
+                Yle = stock.getPoint().getY() + 1;
+            }
+            // si的坐标以及le至si的距离
+            int Xsi = 0;
+            int Ysi = 0;
+            double distanceLeSi = 0.0;
+            // 横向通道的方向
+            if (stock.getEntranceAisleDirection().equals("east")) {
+                Xsi = stock.getPoint().getX() - stock.getPoint().getX()%6;
+            }
+            else {
+                Xsi = stock.getPoint().getX() + stock.getPoint().getX()%6;
+            }
+            // 纵向通道的方向
+            if (stock.getFirstCrossAisleEncountered().equals("north")) {
+                Ysi = stock.getPoint().getY() + 3;
+            }
+            else {
+                Ysi = stock.getPoint().getY() - 3;
+            }
+            distanceLeSi = Math.abs(Xsi-Xle);
+            // 计算距离
+            distance = u + distanceLeSi + Math.abs(Xsi-Xws) + Math.abs(Ysi-Yws) + detour;
+        }
+
+        // case4: 如果workStation在north(south)且stock的entrance在south(north)
+        if ((workStation.getDirection().equals("north") && stock.getFirstCrossAisleEncountered().equals("south"))
+                || (workStation.getDirection().equals("south") && stock.getFirstCrossAisleEncountered().equals("north"))) {
+            // TODO：确定case4距离的计算方式
+            double w = 2 * u;
+            double l = 5 * u;
+            // le的坐标
+            int Xle = 0;
+            int Yle = 0;
+            if (stock.getPoint().getY()%3 == 1) {
+                // down stock
+                Xle = stock.getPoint().getX();
+                Yle = stock.getPoint().getY() - 1;
+            }
+            if (stock.getPoint().getY()%3 == 2) {
+                // up stock
+                Xle = stock.getPoint().getX();
+                Yle = stock.getPoint().getY() + 1;
+            }
+            // si的坐标以及le至ca的距离
+            int Xsi = 0;
+            int Ysi = 0;
+            double distanceCaLe = 0.0;
+            if (stock.getEntranceAisleDirection().equals("east")) {
+                Xsi = stock.getPoint().getX() - stock.getPoint().getX()%6;
+            }
+            else {
+                Xsi = stock.getPoint().getX() + stock.getPoint().getX()%6;
+            }
+            distanceCaLe = Math.abs(Xsi-Xle);
+
+            double distance1 = 0.0;
+            double distance2 = 0.0;
+            distance1 = u + distanceCaLe + w + u + Math.abs(Xle-(int)(distanceCaLe)-w-u) + Math.abs(Yle-Yws) + detour;
+            distance2 = u + distanceCaLe + 2 * l + w + 3 * u + Math.abs(Xle-(int)(distanceCaLe)+w+u) + Math.abs(Yle-Yws) + detour;
+            distance = Math.min(distance1, distance2);
+        }
 
         return distance;
     }
 
     private static double calStock2StockDistance(Stock stock1, Stock stock2){
-
+        double distance = 0.0;
         int X1 = stock1.getPoint().getX();
         int X2 = stock2.getPoint().getX();
         int Y1 = stock1.getPoint().getY();
         int Y2 = stock2.getPoint().getY();
-        double distance = Math.abs(X1-X2)+Math.abs(Y1-Y2);
+        distance = Math.abs(X1-X2)+Math.abs(Y1-Y2);
 
         return distance;
     }

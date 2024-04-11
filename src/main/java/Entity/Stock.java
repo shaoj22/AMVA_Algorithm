@@ -11,8 +11,13 @@ public class Stock {
     private Point point;
 
     /**
-     * 计算该stock用的case
+     * 该stock的entranceAisleDirection：west or east
      */
-    private String distanceFundamentalCase;
+    private String entranceAisleDirection;
+
+    /**
+     * 该stock用的firstCrossAisleEncountered：north or south
+     */
+    private String firstCrossAisleEncountered;
 
 }

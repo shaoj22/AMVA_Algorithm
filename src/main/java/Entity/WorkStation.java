@@ -14,4 +14,10 @@ public class WorkStation {
      * detour的类型
      */
     private String detour;
+
+    /**
+     * 拣选站在仓库的方向
+     */
+    private String direction;
+
 }

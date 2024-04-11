@@ -6,80 +6,49 @@ import ServiceTime.ServiceTime;
 import ServiceTime.ServiceTimeRequest;
 import ServiceTime.ServiceTimeResponse;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class Main {
     public static void main(String[] args) {
+
+        /**
+         * 构造instance
+         */
+
+        Instance instance = new Instance();
+
+        int blockLengthNum = 16;
+        int blockWidthNum = 8;
+        int robotNum = 10;
+        int workStationNum = 5; // 拣选站的数量不能设置太多，太多会超出地图上限
+        double lambda = 0.15;
+        int distanceWorkStation2Stock = 5;
+        int stationNum = 3;
+        double v = 1.25;
+        double liftingTime = 2;
+        double storingTime = 2;
+        double u = 1.0;
+
+        instance.setBlockLengthNum(blockLengthNum);
+        instance.setBlockWidthNum(blockWidthNum);
+        instance.setRobotNum(robotNum);
+        instance.setWorkStationNum(workStationNum);
+        instance.setLambda(lambda);
+        instance.setDistanceWorkStation2Stock(distanceWorkStation2Stock);
+        instance.setStationNum(stationNum);
+        instance.setV(v);
+        instance.setLiftingTime(liftingTime);
+        instance.setStoringTime(storingTime);
+        instance.setU(u);
+
+        System.out.println("------- " + "step1：Instance的初始参数配置成功" + " -------" + "\n");
 
         /**
          * 构造warehouseMap
          */
 
-        Map warehouseMap = new Map();
-        int blockLengthNum = 10;
-        int blockWidthNum = 5;
-        int distanceWorkStation2Stock = 5;
-        int robotNum = 10;
-        double lambda = 0.05;
-        // 构造每个point
-        int warehouseLength = (1+distanceWorkStation2Stock)+(blockLengthNum+1+5*blockLengthNum);
-        int warehouseWidth = (blockWidthNum+1+2*blockWidthNum);
-        int pointNum = warehouseWidth*warehouseLength;
-        List<Point> pointDTOList = new ArrayList<>();
-        int index = 0;
-        for (int x = 0; x < warehouseLength; x++) {
-            for (int y = 0; y < warehouseWidth; y++) {
-                Point point = new Point();
-                point.setX(x);
-                point.setY(y);
-                point.setIndex(index);
-                index += 1;
-                pointDTOList.add(point);
-            }
-        }
-        // 构造每个workStation
-        int workStationNum = 5;
-        List<WorkStation> workStationDTOList = new ArrayList<>();
-        for (int w = 0; w < workStationNum; w++) {
-            WorkStation workStation = new WorkStation();
-            int workStationX = 0;
-            int workStationY = 3*w + 1;
-            for (Point point : pointDTOList) {
-                if (point.getX() == workStationX && point.getY() == workStationY) {
-                    workStation.setPoint(point);
-                    workStation.setDetour("0");
-                    break; // 找到匹配的点后，退出循环
-                }
-            }
-            workStationDTOList.add(workStation);
-        }
-        // 构造每个stock和aisle
-        int stockNum = blockLengthNum*blockWidthNum*2*5;
-        List<Stock> stockDTOList = new ArrayList<>();
-        for (Point point : pointDTOList) {
-            // 判断哪些是stock
-            int X = point.getX();
-            int Y = point.getY();
-            if ((X%6 != 0 && X/6 > 1) && (Y%2 != 0)){
-                Stock stock = new Stock();
-                stock.setPoint(point);
-                // TODO:判断是哪种计算case的stock
-                stockDTOList.add(stock);
-                }
-            else{
-                Aisle aisle = new Aisle();
-                aisle.setPoint(point);
-                // TODO:判断aisle的方向
-            }
-        }
-        warehouseMap.setPointNum(pointNum);
-        warehouseMap.setPointDTOList(pointDTOList);
-        warehouseMap.setWorkStationNum(workStationNum);
-        warehouseMap.setWorkStationDTOList(workStationDTOList);
-        warehouseMap.setStockNum(stockNum);
-        warehouseMap.setStockDTOList(stockDTOList);
-        warehouseMap.setDistanceWorkStation2Stock(distanceWorkStation2Stock);
+        instance = instance.generateInstance(instance);
+        Map warehouseMap = instance.getWarehouseMap();
+
+        System.out.println("------- " + "step2：Instance的Map构造成功" + " -------" + "\n");
 
         /**
          * 计算service time
@@ -87,13 +56,25 @@ public class Main {
 
         ServiceTimeRequest serviceTimeRequest = new ServiceTimeRequest();
         serviceTimeRequest.setWarehouseMap(warehouseMap);
-        serviceTimeRequest.setStationNum(3);
-        serviceTimeRequest.setV(1.25);
-        serviceTimeRequest.setLiftingTime(2);
-        serviceTimeRequest.setStoringTime(2);
+        serviceTimeRequest.setStationNum(stationNum);
+        serviceTimeRequest.setV(v);
+        serviceTimeRequest.setLiftingTime(liftingTime);
+        serviceTimeRequest.setStoringTime(storingTime);
+        serviceTimeRequest.setU(u);
 
         ServiceTime serviceTimeAlgorithmTool = new ServiceTime();
         ServiceTimeResponse serviceTimeResponse = serviceTimeAlgorithmTool.runner(serviceTimeRequest);
+
+        System.out.println("------- " + "step3：ServiceTime计算成功" + " -------");
+        System.out.println("服务时间的一阶矩：\n" +
+                "Es[1]:" + serviceTimeResponse.getESs()[1] + "  " +
+                "Es[2]:" + serviceTimeResponse.getESs()[2] + "  " +
+                "Es[3]:" + serviceTimeResponse.getESs()[3] + "\n" +
+                "服务时间的二阶矩：\n" +
+                "Es2[1]:" + serviceTimeResponse.getESs2()[1] + "  " +
+                "Es2[2]:" + serviceTimeResponse.getESs2()[2] + "  " +
+                "Es2[3]:" + serviceTimeResponse.getESs2()[3] + "\n"
+        );
 
         /**
          * 计算cqn1的吞吐量
@@ -103,11 +84,12 @@ public class Main {
         // 求解类型
         cqn1AmvaRequest.setCqnType("cqn1");
         // 机器人的数量
-        cqn1AmvaRequest.setRobotNum(robotNum+1);
+        cqn1AmvaRequest.setRobotNum(robotNum);
         // 服务站的数量
-        cqn1AmvaRequest.setStationNum(4);
+        cqn1AmvaRequest.setStationNum(stationNum);
         // 服务站s处的servers数量
         int[] cqn1Cs = new int[4];
+        // TODO：每个服务站服务人数的确定
         cqn1Cs[0] = 0;
         cqn1Cs[1] = 10;
         cqn1Cs[2] = 10;
@@ -115,6 +97,7 @@ public class Main {
         cqn1AmvaRequest.setCs(cqn1Cs);
         // 服务站s处的访问率
         double[] cqn1CsVs = new double[4];
+        // TODO：每个服务站访问概率的确定
         cqn1CsVs[0] = 0;
         cqn1CsVs[1] = 0.2;
         cqn1CsVs[2] = 0.3;
@@ -131,6 +114,9 @@ public class Main {
         // 获得cqn1的吞吐量
         double cqn1Throughput = cqn1AmvaResponse.getTr()[robotNum];
 
+        System.out.println("------- " + "step4：Cqn1的吞吐量计算成功" + " -------");
+        System.out.println("Cqn1的吞吐量为：" + cqn1Throughput*3600 + " 单/小时" + "\n");
+
         /**
          * 计算cqn2的相关指标
          */
@@ -143,9 +129,9 @@ public class Main {
         // 求解类型
         cqn2AmvaRequest.setCqnType("cqn2");
         // 机器人的数量
-        cqn2AmvaRequest.setRobotNum(robotNum+1);
+        cqn2AmvaRequest.setRobotNum(robotNum);
         // 服务站的数量
-        cqn2AmvaRequest.setStationNum(5);
+        cqn2AmvaRequest.setStationNum(stationNum+1);
         // 服务站s处的servers数量
         int[] cqn2Cs = new int[5];
         // TODO：每个服务站服务人数的确定
@@ -172,14 +158,33 @@ public class Main {
             cqn2ESs2[s] = serviceTimeResponse.getESs2()[s];
         }
         // 服务站s+1处的一阶矩和二阶矩
-        cqn2ESs[4] = 0.0;
-        cqn2ESs2[4] = 0.0;
+        cqn2ESs[4] = 5.0;
+        cqn2ESs2[4] = 250.0;
         cqn2AmvaRequest.setESs(cqn2ESs);
         cqn2AmvaRequest.setESs2(cqn2ESs2);
 
         // 获得cqn2相关的指标
+        // TODO: 获得cqn2相关的指标
         AMVAResponse cqn2AmvaResponse = amvaAlgorithmTool.runner(cqn2AmvaRequest);
-
+        // 机器人的利用率
+        double Lr = cqn2AmvaResponse.getLsIn()[stationNum+1][robotNum];
+        double pr = 1 - Lr/robotNum;
+        // 订单周转时间
+        double Li = 0.0;
+        double Lo = cqn2AmvaResponse.getLsIn()[stationNum+1][robotNum];
+        for (int s = 1; s <= stationNum; s++) {
+            Li += cqn2AmvaResponse.getLsIn()[s][robotNum];
+        }
+        double toc = (Lo+Li) / instance.getLambda();
+        // 系统的吞吐量
+        double cqn2Throughput = cqn2AmvaResponse.getTr()[robotNum];
+        // 工作站的利用率
+        double pws = cqn2Throughput*(1.0/instance.getWorkStationNum())*10;
+        System.out.println("------- " + "step5：Cqn2的相关指标计算成功" + " -------");
+        System.out.println("机器人的利用率为：" + pr);
+        System.out.println("订单周转时间为：" + toc + " 秒");
+        System.out.println("系统的吞吐量为：" + cqn2Throughput*3600 + " 单/小时");
+        System.out.println("工作站的利用率为：" + pws);
 
     }
 }
