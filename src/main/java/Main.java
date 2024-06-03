@@ -88,25 +88,35 @@ public class Main {
         // 服务站的数量
         cqn1AmvaRequest.setStationNum(stationNum);
         // 服务站s处的servers数量
-        int[] cqn1Cs = new int[4];
+        int[] cqn1Cs = new int[5];
         // TODO：每个服务站服务人数的确定
         cqn1Cs[0] = 0;
-        cqn1Cs[1] = 10;
-        cqn1Cs[2] = 10;
-        cqn1Cs[3] = 10;
+        cqn1Cs[1] = instance.getWorkStationNum()*instance.getWarehouseMap().getStockNum();
+        cqn1Cs[2] = instance.getWarehouseMap().getStockNum()*instance.getWarehouseMap().getStockNum();
+        cqn1Cs[3] = instance.getWorkStationNum()*instance.getWarehouseMap().getStockNum();
+        cqn1Cs[4] = instance.getWorkStationNum();
         cqn1AmvaRequest.setCs(cqn1Cs);
         // 服务站s处的访问率
-        double[] cqn1CsVs = new double[4];
+        double[] cqn1CsVs = new double[5];
         // TODO：每个服务站访问概率的确定
         cqn1CsVs[0] = 0;
-        cqn1CsVs[1] = 0.2;
-        cqn1CsVs[2] = 0.3;
-        cqn1CsVs[3] = 0.3;
+        cqn1CsVs[1] = 1;
+        cqn1CsVs[2] = 1;
+        cqn1CsVs[3] = 1;
+        cqn1CsVs[4] = 1;
         cqn1AmvaRequest.setVs(cqn1CsVs);
         // 服务站s处的一阶矩
-        cqn1AmvaRequest.setESs(serviceTimeResponse.getESs());
+        double[] cqn1ESs = new double[5];
+        double[] cqn1ESs2 = new double[5];
+        for (int s = 0; s < serviceTimeResponse.getESs().length; s++) {
+            cqn1ESs[s] = serviceTimeResponse.getESs()[s];
+            cqn1ESs2[s] = serviceTimeResponse.getESs2()[s];
+        }
+        cqn1ESs[4] = 18.0;
+        cqn1ESs2[4] = 50.0;
+        cqn1AmvaRequest.setESs(cqn1ESs);
         // 服务站s处的二阶矩
-        cqn1AmvaRequest.setESs2(serviceTimeResponse.getESs2());
+        cqn1AmvaRequest.setESs2(cqn1ESs2);
 
         AMVA amvaAlgorithmTool = new AMVA();
         AMVAResponse cqn1AmvaResponse = amvaAlgorithmTool.runner(cqn1AmvaRequest);
@@ -133,33 +143,37 @@ public class Main {
         // 服务站的数量
         cqn2AmvaRequest.setStationNum(stationNum+1);
         // 服务站s处的servers数量
-        int[] cqn2Cs = new int[5];
+        int[] cqn2Cs = new int[6];
         // TODO：每个服务站服务人数的确定
         cqn2Cs[0] = 0;
-        cqn2Cs[1] = 10;
-        cqn2Cs[2] = 10;
-        cqn2Cs[3] = 10;
-        cqn2Cs[4] = 1;
+        cqn2Cs[1] = instance.getWorkStationNum()*instance.getWarehouseMap().getStockNum();
+        cqn2Cs[2] = instance.getWarehouseMap().getStockNum()*instance.getWarehouseMap().getStockNum();
+        cqn2Cs[3] = instance.getWorkStationNum()*instance.getWarehouseMap().getStockNum();
+        cqn2Cs[4] = instance.getWorkStationNum();
+        cqn2Cs[5] = 1;
         cqn2AmvaRequest.setCs(cqn2Cs);
         // 服务站s处的访问率
-        double[] cqn2Vs = new double[5];
+        double[] cqn2Vs = new double[6];
         // TODO：每个服务站访问概率的确定
         cqn2Vs[0] = 0;
-        cqn2Vs[1] = 0.2;
-        cqn2Vs[2] = 0.3;
-        cqn2Vs[3] = 0.3;
+        cqn2Vs[1] = 1;
+        cqn2Vs[2] = 1;
+        cqn2Vs[3] = 1;
         cqn2Vs[4] = 1;
+        cqn2Vs[5] = 1;
         cqn2AmvaRequest.setVs(cqn2Vs);
         // 服务站s处的一阶矩和二阶矩
-        double[] cqn2ESs = new double[5];
-        double[] cqn2ESs2 = new double[5];
+        double[] cqn2ESs = new double[6];
+        double[] cqn2ESs2 = new double[6];
         for (int s = 0; s < serviceTimeResponse.getESs().length; s++) {
             cqn2ESs[s] = serviceTimeResponse.getESs()[s];
             cqn2ESs2[s] = serviceTimeResponse.getESs2()[s];
         }
         // 服务站s+1处的一阶矩和二阶矩
-        cqn2ESs[4] = 5.0;
-        cqn2ESs2[4] = 250.0;
+        cqn2ESs[4] = 18.0;
+        cqn2ESs2[4] = 50.0;
+        cqn2ESs[5] = 5;
+        cqn2ESs2[5] = 250.0;
         cqn2AmvaRequest.setESs(cqn2ESs);
         cqn2AmvaRequest.setESs2(cqn2ESs2);
 
